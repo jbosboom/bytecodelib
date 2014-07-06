@@ -32,8 +32,13 @@
 
 	<target name="compile">
 		<mkdir dir="build/classes"/>
-		<javac srcdir="src" destdir="build/classes" classpath="lib/guava.jar;lib/asm.jar"
-			   includeantruntime="false"/>
+		<javac srcdir="src" destdir="build/classes" includeantruntime="false">
+			<classpath>
+				<fileset dir="lib">
+					<include name="*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
 	</target>
 
 	<target name="jar" depends="compile">
