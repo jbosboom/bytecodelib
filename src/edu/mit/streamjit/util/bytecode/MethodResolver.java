@@ -788,7 +788,7 @@ public final class MethodResolver {
 			Value replacement = method.isConstructor() && method.getParent().getSuperclass().equals(k)
 					? uninitializedThis : inst;
 			Value toBeReplaced = frame.stack.pop();
-			assert toBeReplaced instanceof UninitializedValue;
+//			assert toBeReplaced instanceof UninitializedValue;
 			frame.replace(toBeReplaced, replacement);
 		} else if (!(mt.getReturnType() instanceof VoidType))
 			frame.stack.push(inst);
@@ -1031,8 +1031,8 @@ public final class MethodResolver {
 				int i = 0;
 				//If the method is a constructor, it begins with an
 				//UninitializedThis object in local variable 0.
-				if (method.isConstructor())
-					entryLocals[i++] = uninitializedThis;
+//				if (method.isConstructor())
+//					entryLocals[i++] = uninitializedThis;
 				for (Argument a : method.arguments()) {
 					entryLocals[i] = a;
 					Type argType = a.getType();

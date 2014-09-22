@@ -32,7 +32,7 @@
 
 	<target name="compile">
 		<mkdir dir="build/classes"/>
-		<javac srcdir="src" destdir="build/classes" includeantruntime="false">
+		<javac srcdir="src" destdir="build/classes" debug="true" includeantruntime="false">
 			<classpath>
 				<fileset dir="lib">
 					<include name="*.jar"/>
