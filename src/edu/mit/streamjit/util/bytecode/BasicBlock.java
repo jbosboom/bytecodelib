@@ -37,6 +37,20 @@ public class BasicBlock extends Value implements Parented<Method> {
 		setName(name);
 	}
 
+	/**
+	 * Creates a new, empty BasicBlock and appends it to the given method.
+	 * @param method the method to append to
+	 */
+	public BasicBlock(Method method) {
+		this(method.getParent().getParent());
+		method.basicBlocks().add(this);
+	}
+
+	public BasicBlock(Method method, String name) {
+		this(method.getParent().getParent(), name);
+		method.basicBlocks().add(this);
+	}
+
 	@Override
 	public BasicBlockType getType() {
 		return (BasicBlockType)super.getType();
