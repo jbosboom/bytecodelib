@@ -18,6 +18,10 @@ public class Argument extends Value implements Parented<Method> {
 		this.parent = parent;
 	}
 
+	public boolean isReceiver() {
+		return parent.hasReceiver() && parent.arguments().indexOf(this) == 0;
+	}
+
 	@Override
 	public Method getParent() {
 		return parent;
