@@ -65,13 +65,30 @@ public final class Klass implements Accessible, Parented<Module> {
 	 * @param superclass
 	 * @param interfaces
 	 * @param module
+	 * @deprecated Prefer the constructor taking modifiers, to avoid forgetting
+	 * to set PUBLIC or FINAL as appropriate.
 	 */
+	@Deprecated
 	public Klass(String name, Klass superclass, List<Klass> interfaces, Module module) {
+		this(name, superclass, interfaces, EnumSet.noneOf(Modifier.class), module);
+	}
+
+	/**
+	 * Creates a new mutable Klass instance.
+	 * @param name
+	 * @param superclass
+	 * @param interfaces
+	 * @param modifiers
+	 * @param module
+	 */
+	public Klass(String name, Klass superclass, List<Klass> interfaces, Set<Modifier> modifiers, Module module) {
 		checkNotNull(name);
 		checkNotNull(module);
 		checkState(module.getKlass(name) == null, "klass named %s already in module", name);
 		this.name = name;
+		//EnumSet.copyOf throws on empty non-EnumSets, so we use addAll instead
 		this.modifiers = EnumSet.noneOf(Modifier.class);
+		modifiers().addAll(modifiers);
 		this.superclass = superclass;
 		this.interfaces = interfaces == null ? new ArrayList<Klass>(2) : new ArrayList<>(interfaces);
 		this.fields = new ParentedList<>(this, Field.class);
