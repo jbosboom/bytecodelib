@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public final class LookupUtils {
 	private LookupUtils() {throw new AssertionError();}
 
+	//<editor-fold defaultstate="collapsed" desc="findVirtual">
 	public static MethodHandle findVirtual(Lookup lookup, Class<?> container, String name, MethodType type) {
 		try {
 			return lookup.findVirtual(container, name, type);
@@ -75,11 +76,13 @@ public final class LookupUtils {
 	public static MethodHandle findVirtual(Class<?> container, String name) {
 		return findVirtual(MethodHandles.publicLookup(), container, name);
 	}
+	//</editor-fold>
 
 	//TODO: findSpecial
 
 	//TODO: findConstructor
 
+	//<editor-fold defaultstate="collapsed" desc="findStatic">
 	public static MethodHandle findStatic(Lookup lookup, Class<?> container, String name, MethodType type) {
 		try {
 			return lookup.findStatic(container, name, type);
@@ -127,9 +130,146 @@ public final class LookupUtils {
 	public static MethodHandle findStatic(Class<?> container, String name) {
 		return findStatic(MethodHandles.publicLookup(), container, name);
 	}
+	//</editor-fold>
+
+	//<editor-fold defaultstate="collapsed" desc="findGetter">
+	public static MethodHandle findGetter(Lookup lookup, Class<?> container, String name, Class<?> type) {
+		try {
+			return lookup.findGetter(container, name, type);
+		} catch (NoSuchFieldException | IllegalAccessException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	public static MethodHandle findGetter(Class<?> container, String name, Class<?> type) {
+		return findGetter(MethodHandles.publicLookup(), container, name, type);
+	}
+
+	public static MethodHandle findGetter(Lookup lookup, String name, Class<?> type) {
+		return findGetter(lookup, lookup.lookupClass(), name, type);
+	}
+
+	public static MethodHandle findGetter(Lookup lookup, Class<?> container, String name) {
+		try {
+			return findGetter(lookup, container, name, container.getDeclaredField(name).getType());
+		} catch (NoSuchFieldException | SecurityException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	public static MethodHandle findGetter(Class<?> container, String name) {
+		return findGetter(MethodHandles.publicLookup(), container, name);
+	}
+
+	public static MethodHandle findGetter(Lookup lookup, String name) {
+		return findGetter(lookup, lookup.lookupClass(), name);
+	}
+	//</editor-fold>
+
+	//<editor-fold defaultstate="collapsed" desc="findSetter">
+	public static MethodHandle findSetter(Lookup lookup, Class<?> container, String name, Class<?> type) {
+		try {
+			return lookup.findSetter(container, name, type);
+		} catch (NoSuchFieldException | IllegalAccessException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	public static MethodHandle findSetter(Class<?> container, String name, Class<?> type) {
+		return findSetter(MethodHandles.publicLookup(), container, name, type);
+	}
+
+	public static MethodHandle findSetter(Lookup lookup, String name, Class<?> type) {
+		return findSetter(lookup, lookup.lookupClass(), name, type);
+	}
+
+	public static MethodHandle findSetter(Lookup lookup, Class<?> container, String name) {
+		try {
+			return findSetter(lookup, container, name, container.getDeclaredField(name).getType());
+		} catch (NoSuchFieldException | SecurityException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	public static MethodHandle findSetter(Class<?> container, String name) {
+		return findSetter(MethodHandles.publicLookup(), container, name);
+	}
+
+	public static MethodHandle findSetter(Lookup lookup, String name) {
+		return findSetter(lookup, lookup.lookupClass(), name);
+	}
+	//</editor-fold>
+
+	//<editor-fold defaultstate="collapsed" desc="findStaticGetter">
+	public static MethodHandle findStaticGetter(Lookup lookup, Class<?> container, String name, Class<?> type) {
+		try {
+			return lookup.findStaticGetter(container, name, type);
+		} catch (NoSuchFieldException | IllegalAccessException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	public static MethodHandle findStaticGetter(Class<?> container, String name, Class<?> type) {
+		return findStaticGetter(MethodHandles.publicLookup(), container, name, type);
+	}
+
+	public static MethodHandle findStaticGetter(Lookup lookup, String name, Class<?> type) {
+		return findStaticGetter(lookup, lookup.lookupClass(), name, type);
+	}
+
+	public static MethodHandle findStaticGetter(Lookup lookup, Class<?> container, String name) {
+		try {
+			return findStaticGetter(lookup, container, name, container.getDeclaredField(name).getType());
+		} catch (NoSuchFieldException | SecurityException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	public static MethodHandle findStaticGetter(Class<?> container, String name) {
+		return findStaticGetter(MethodHandles.publicLookup(), container, name);
+	}
+
+	public static MethodHandle findStaticGetter(Lookup lookup, String name) {
+		return findStaticGetter(lookup, lookup.lookupClass(), name);
+	}
+	//</editor-fold>
+
+	//<editor-fold defaultstate="collapsed" desc="findStaticSetter">
+	public static MethodHandle findStaticSetter(Lookup lookup, Class<?> container, String name, Class<?> type) {
+		try {
+			return lookup.findStaticSetter(container, name, type);
+		} catch (NoSuchFieldException | IllegalAccessException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	public static MethodHandle findStaticSetter(Class<?> container, String name, Class<?> type) {
+		return findStaticSetter(MethodHandles.publicLookup(), container, name, type);
+	}
+
+	public static MethodHandle findStaticSetter(Lookup lookup, String name, Class<?> type) {
+		return findStaticSetter(lookup, lookup.lookupClass(), name, type);
+	}
+
+	public static MethodHandle findStaticSetter(Lookup lookup, Class<?> container, String name) {
+		try {
+			return findStaticSetter(lookup, container, name, container.getDeclaredField(name).getType());
+		} catch (NoSuchFieldException | SecurityException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	public static MethodHandle findStaticSetter(Class<?> container, String name) {
+		return findStaticSetter(MethodHandles.publicLookup(), container, name);
+	}
+
+	public static MethodHandle findStaticSetter(Lookup lookup, String name) {
+		return findStaticSetter(lookup, lookup.lookupClass(), name);
+	}
+	//</editor-fold>
 
 
-
+	//<editor-fold defaultstate="collapsed" desc="MethodType predicates">
 	public static Predicate<MethodType> params(int parameterCount) {
 		return t -> t.parameterCount() == parameterCount;
 	}
@@ -141,4 +281,5 @@ public final class LookupUtils {
 	public static Predicate<MethodType> noRefParam() {
 		return t -> t.parameterList().stream().allMatch(Class::isPrimitive);
 	}
+	//</editor-fold>
 }
