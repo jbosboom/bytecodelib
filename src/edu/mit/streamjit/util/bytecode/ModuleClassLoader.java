@@ -30,6 +30,14 @@ public final class ModuleClassLoader extends ClassLoader {
 		this.module = module;
 	}
 
+	/**
+	 * Returns the Module this ModuleClassLoader loads from.
+	 * @return the Module this loader loads from
+	 */
+	public Module getModule() {
+		return module;
+	}
+
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
 		Klass klass = module.getKlass(name);
