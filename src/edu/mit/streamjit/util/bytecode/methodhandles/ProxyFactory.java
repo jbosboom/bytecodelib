@@ -2,11 +2,13 @@ package edu.mit.streamjit.util.bytecode.methodhandles;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.collect.Lists;
+import edu.mit.streamjit.util.bytecode.Access;
 import edu.mit.streamjit.util.bytecode.Klass;
 import edu.mit.streamjit.util.bytecode.Methods;
 import edu.mit.streamjit.util.bytecode.Modifier;
 import edu.mit.streamjit.util.bytecode.Module;
 import edu.mit.streamjit.util.bytecode.ModuleClassLoader;
+import static edu.mit.streamjit.util.bytecode.methodhandles.LookupUtils.findVirtual;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -29,9 +31,17 @@ import java.util.stream.Collectors;
 public final class ProxyFactory {
 	private final Module module;
 	private final ModuleClassLoader loader;
+	private final String pkg;
 	public ProxyFactory(ModuleClassLoader loader) {
 		this.loader = requireNonNull(loader);
 		this.module = this.loader.getModule();
+		this.pkg = null;
+	}
+
+	public ProxyFactory(ModuleClassLoader loader, String pkg) {
+		this.loader = requireNonNull(loader);
+		this.module = this.loader.getModule();
+		this.pkg = pkg.endsWith(".") ? pkg : pkg + ".";
 	}
 
 	public <T> T createProxy(String name, Map<String, MethodHandle> methods, Class<T> iface) {
@@ -46,13 +56,22 @@ public final class ProxyFactory {
 		List<Klass> interfaces = ifaces.stream()
 				.map(module::getKlass)
 				.collect(Collectors.toList());
-		return createProxy0(name, methods, interfaces);
+		return createProxy0(name, methods, interfaces, false);
 	}
 
-	private Object createProxy0(String proxyName, Map<String, MethodHandle> methods, List<Klass> interfaces) {
+	public MethodHandle bytecodify(MethodHandle handle, String className) {
+		//TODO: this is making a nonstatic method, but we explicitly don't care
+		//about the receiver.
+		//The proxy class must be public so we can make handles to its methods.
+		Object proxy = createProxy0(className, Collections.singletonMap("$invoke", handle), Collections.emptyList(), true);
+		return findVirtual(proxy.getClass(), "$invoke").bindTo(proxy);
+	}
+
+	private Object createProxy0(String proxyName, Map<String, MethodHandle> methods, List<Klass> interfaces, boolean publicKlass) {
 		checkArgument(module.klasses().containsAll(interfaces));
-		Klass proxy = new Klass(proxyName, module.getKlass(Object.class), interfaces,
+		Klass proxy = new Klass(pkg + proxyName, module.getKlass(Object.class), interfaces,
 				EnumSet.of(Modifier.FINAL), module);
+		if (publicKlass) proxy.setAccess(Access.PUBLIC);
 		Methods.createDefaultConstructor(proxy);
 		Methods.staticFinalFieldInitializer(proxy, methods);
 		methods.forEach((name, handle) -> Methods.invokeExactFromField(proxy, proxy.getField(name),
