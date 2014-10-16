@@ -4,6 +4,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -80,7 +81,53 @@ public final class LookupUtils {
 
 	//TODO: findSpecial
 
-	//TODO: findConstructor
+	//<editor-fold defaultstate="collapsed" desc="findConstructor">
+	public static MethodHandle findConstructor(Lookup lookup, Class<?> container, MethodType type) {
+		try {
+			return lookup.findConstructor(container, type);
+		} catch (NoSuchMethodException | IllegalAccessException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	public static MethodHandle findConstructor(Lookup lookup, MethodType type) {
+		return findConstructor(lookup, lookup.lookupClass(), type);
+	}
+
+	public static MethodHandle findConstructor(Class<?> container, MethodType type) {
+		return findConstructor(MethodHandles.publicLookup(), container, type);
+	}
+
+	public static MethodHandle findConstructor(Lookup lookup, Class<?> container, Predicate<MethodType> typeFilter) {
+		List<Constructor<?>> matching = Arrays.stream(container.getDeclaredConstructors())
+				.filter(m -> typeFilter.test(MethodType.methodType(void.class, m.getParameterTypes())))
+				.collect(Collectors.toList());
+		if (matching.size() != 1)
+			throw new RuntimeException(String.format("%s %s %s: %s", lookup, container, typeFilter, matching));
+		Constructor<?> m = matching.get(0);
+		return findConstructor(lookup, container, MethodType.methodType(void.class, m.getParameterTypes()));
+	}
+
+	public static MethodHandle findConstructor(Lookup lookup, Predicate<MethodType> typeFilter) {
+		return findConstructor(lookup, lookup.lookupClass(), typeFilter);
+	}
+
+	public static MethodHandle findConstructor(Class<?> container, Predicate<MethodType> typeFilter) {
+		return findConstructor(MethodHandles.publicLookup(), container, typeFilter);
+	}
+
+	public static MethodHandle findConstructor(Lookup lookup, Class<?> container) {
+		return findConstructor(lookup, container, x -> true);
+	}
+
+	public static MethodHandle findConstructor(Lookup lookup) {
+		return findConstructor(lookup, lookup.lookupClass());
+	}
+
+	public static MethodHandle findConstructor(Class<?> container) {
+		return findConstructor(MethodHandles.publicLookup(), container);
+	}
+	//</editor-fold>
 
 	//<editor-fold defaultstate="collapsed" desc="findStatic">
 	public static MethodHandle findStatic(Lookup lookup, Class<?> container, String name, MethodType type) {
