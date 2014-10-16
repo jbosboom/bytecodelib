@@ -321,6 +321,10 @@ public final class LookupUtils {
 		return t -> t.parameterCount() == parameterCount;
 	}
 
+	public static Predicate<MethodType> param(int index, Class<?> type) {
+		return t -> t.parameterCount() >= index && t.parameterType(index).equals(type);
+	}
+
 	public static Predicate<MethodType> noPrimParam() {
 		return t -> !t.parameterList().stream().anyMatch(Class::isPrimitive);
 	}
