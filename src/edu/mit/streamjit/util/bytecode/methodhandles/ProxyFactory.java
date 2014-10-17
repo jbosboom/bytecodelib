@@ -54,9 +54,7 @@ public final class ProxyFactory {
 	private final ModuleClassLoader loader;
 	private final String pkg;
 	public ProxyFactory(ModuleClassLoader loader) {
-		this.loader = requireNonNull(loader);
-		this.module = this.loader.getModule();
-		this.pkg = null;
+		this(loader, "");
 	}
 
 	public ProxyFactory(ModuleClassLoader loader, String pkg) {
