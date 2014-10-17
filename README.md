@@ -10,3 +10,8 @@ It has many deficiencies, both obvious (exception handlers are not
 modeled) and subtle (`invokespecial` is not modeled, except for calling
 superclass constructors).  But for what it does do, it's easier to use
 than ASM.
+
+Building
+--------
+
+`ant fetch; ant jar`
