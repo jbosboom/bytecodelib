@@ -33,7 +33,6 @@ import edu.mit.streamjit.util.bytecode.types.PrimitiveType;
 import edu.mit.streamjit.util.bytecode.types.RegularType;
 import edu.mit.streamjit.util.bytecode.types.ReturnType;
 import edu.mit.streamjit.util.bytecode.types.VoidType;
-import java.lang.invoke.MethodHandle;
 
 /**
  * A method call.  All types of bytecoded calls (i.e., not invokedynamic) use

@@ -29,7 +29,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.util.CheckClassAdapter;
 
 /**
  * Builds a .class file (as a byte[]) from a Klass.

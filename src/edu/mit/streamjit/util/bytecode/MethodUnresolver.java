@@ -59,7 +59,6 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
