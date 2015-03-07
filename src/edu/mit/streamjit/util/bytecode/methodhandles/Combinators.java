@@ -100,7 +100,8 @@ public final class Combinators {
 	/**
 	 * Returns a MethodHandle with a leading int argument that selects one of
 	 * the MethodHandles in the given array, which is invoked with the
-	 * remaining arguments.
+	 * remaining arguments. Modifications to the array after this method returns
+	 * do not affect the behavior of the returned handle.
 	 * @param cases the cases to select from
 	 * @return a MethodHandle approximating the switch statement
 	 */
@@ -109,7 +110,7 @@ public final class Combinators {
 		MethodType type = cases[0].type();
 		for (MethodHandle mh : cases)
 			checkArgument(mh.type().equals(type), "Type mismatch in "+Arrays.toString(cases));
-		MethodHandle selector = METHODHANDLE_ARRAY_GETTER.bindTo(cases);
+		MethodHandle selector = METHODHANDLE_ARRAY_GETTER.bindTo(cases.clone());
 		//Replace the index with the handle to invoke, passing it to an invoker.
 		return MethodHandles.filterArguments(MethodHandles.exactInvoker(type), 0, selector);
 	}
