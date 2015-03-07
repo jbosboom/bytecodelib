@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014 Massachusetts Institute of Technology
+ * Copyright (c) 2013-2015 Massachusetts Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,12 @@
 package edu.mit.streamjit.util.bytecode.methodhandles;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.primitives.Primitives;
 import static edu.mit.streamjit.util.bytecode.methodhandles.LookupUtils.findStatic;
+import static edu.mit.streamjit.util.bytecode.methodhandles.LookupUtils.findVirtual;
 import static edu.mit.streamjit.util.bytecode.methodhandles.LookupUtils.param;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -34,6 +37,9 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
 
 /**
  *
@@ -106,6 +112,95 @@ public final class Combinators {
 		MethodHandle selector = METHODHANDLE_ARRAY_GETTER.bindTo(cases);
 		//Replace the index with the handle to invoke, passing it to an invoker.
 		return MethodHandles.filterArguments(MethodHandles.exactInvoker(type), 0, selector);
+	}
+
+	/**
+	 * Returns a method handle with a leading int argument that selects one of
+	 * the method handles in the given map, which is invoked with the remaining
+	 * arguments.  If the leading int argument is not present in the map, the
+	 * given default handle is executed instead with the leading int argument
+	 * and any remaining arguments.
+	 * @param cases the switch cases
+	 * @param defaultCase the handle to call if no cases match
+	 * @return a method handle approximating the switch statement
+	 */
+	public static MethodHandle lookupswitch(Map<Integer, MethodHandle> cases, MethodHandle defaultCase) {
+		return lookupswitch(ImmutableSortedMap.copyOf(cases), defaultCase);
+	}
+
+	private static final MethodHandle INTCONSUMER_ACCEPT = findVirtual(IntConsumer.class, "accept");
+	/**
+	 * Returns a method handle with a leading int argument that selects one of
+	 * the method handles in the given map, which is invoked with the remaining
+	 * arguments.  If the leading int argument is not present in the map, an
+	 * AssertionError will be thrown.
+	 * @param cases the switch cases
+	 * @return a method handle approximating the switch statement
+	 */
+	public static MethodHandle lookupswitch(Map<Integer, MethodHandle> cases) {
+		ImmutableSortedMap<Integer, MethodHandle> sortedCases = ImmutableSortedMap.copyOf(cases);
+		String validCases = sortedCases.keySet().toString();
+		IntConsumer defaultCaseAction = (idx) -> {throw new AssertionError(
+				String.format("lookupswitch index %d not in cases %s", idx, validCases));};
+		MethodHandle defaultCase = INTCONSUMER_ACCEPT.bindTo(defaultCaseAction);
+		if (!sortedCases.values().isEmpty()) {
+			//just pick an arbitrary element -- we'll catch type mismatches later
+			MethodType t = sortedCases.values().iterator().next().type();
+			defaultCase = MethodHandles.dropArguments(defaultCase, 1, t.parameterArray());
+			defaultCase = defaultCase.asType(defaultCase.type().changeReturnType(t.returnType()));
+		}
+		return lookupswitch(sortedCases, defaultCase);
+	}
+
+	/**
+	 * Returns a method handle with a leading int argument that selects one of
+	 * the method handles in the given array, which is invoked with the
+	 * remaining arguments. Modifications to the array after this method returns
+	 * do not affect the behavior of the returned handle.
+	 * @param cases the switch cases
+	 * @return a method handle approximating the switch statement
+	 * @see #tableswitch(java.lang.invoke.MethodHandle[])
+	 */
+	public static MethodHandle lookupswitch(MethodHandle[] cases) {
+		ImmutableSortedMap.Builder<Integer, MethodHandle> casesMap = ImmutableSortedMap.naturalOrder();
+		for (int i = 0; i < cases.length; ++i)
+			casesMap.put(i, cases[i]);
+		return lookupswitch(casesMap.build());
+	}
+
+	private static MethodHandle lookupswitch(ImmutableSortedMap<Integer, MethodHandle> cases, MethodHandle defaultCase) {
+		if (cases.isEmpty()) {
+			checkArgument(defaultCase.type().parameterList().equals(ImmutableList.of(int.class)),
+					"bad type for default case %s", defaultCase.type());
+			return defaultCase;
+		}
+		MethodType type = cases.values().iterator().next().type();
+		for (MethodHandle mh : cases.values())
+			checkArgument(mh.type().equals(type), "type mismatch in %s", cases.values());
+		checkArgument(defaultCase.type().equals(type.insertParameterTypes(0, int.class)),
+				"bad type for default case %s, other cases %s", defaultCase.type(), type);
+		return lookupswitch0(cases, defaultCase);
+	}
+
+	private static MethodHandle lookupswitch0(ImmutableSortedMap<Integer, MethodHandle> cases, MethodHandle defaultCase) {
+		if (cases.isEmpty())
+			return defaultCase;
+		if (cases.size() == 1) {
+			Map.Entry<Integer, MethodHandle> next = cases.entrySet().iterator().next();
+			return MethodHandles.guardWithTest(eq(next.getKey()),
+					MethodHandles.dropArguments(next.getValue(), 0, int.class), //discard the case index
+					defaultCase);
+		}
+		int median = median(cases.keySet().asList());
+		return MethodHandles.guardWithTest(le(median),
+				lookupswitch0(cases.headMap(median, true), defaultCase),
+				lookupswitch0(cases.tailMap(median, false), defaultCase));
+	}
+
+	private static int median(List<Integer> list) {
+		if (list.size() % 2 == 1)
+			return list.get(list.size()/2);
+		return (list.get(list.size()/2) + list.get(list.size()/2 - 1))/2;
 	}
 
 	/**
@@ -207,6 +302,18 @@ public final class Combinators {
 			return handle;
 		}
 		return REFERENCE_ARRAYLENGTH.asType(MethodType.methodType(int.class, arrayClass));
+	}
+
+	private static final MethodHandle INTPREDICATE_TEST = findVirtual(IntPredicate.class, "test");
+	//TODO: make these public if we find another use
+	//TODO: the lambda desugars to a static method; should we make those methods
+	//explicit to avoid creating the lambda objects?
+	private static MethodHandle eq(int y) {
+		return INTPREDICATE_TEST.bindTo((IntPredicate)(x -> x == y));
+	}
+
+	private static MethodHandle le(int y) {
+		return INTPREDICATE_TEST.bindTo((IntPredicate)(x -> x <= y));
 	}
 
 	private static final MethodHandle INTEGER_SUM = findStatic(Integer.class, "sum");
