@@ -98,12 +98,12 @@ public final class Combinators {
 
 	private static final MethodHandle METHODHANDLE_ARRAY_GETTER = MethodHandles.arrayElementGetter(MethodHandle[].class);
 	/**
-	 * Returns a MethodHandle with a leading int argument that selects one of
-	 * the MethodHandles in the given array, which is invoked with the
+	 * Returns a method handle with a leading int argument that selects one of
+	 * the method handles in the given array, which is invoked with the
 	 * remaining arguments. Modifications to the array after this method returns
 	 * do not affect the behavior of the returned handle.
 	 * @param cases the cases to select from
-	 * @return a MethodHandle approximating the switch statement
+	 * @return a method handle approximating the switch statement
 	 */
 	public static MethodHandle tableswitch(MethodHandle[] cases) {
 		checkArgument(cases.length >= 1);
