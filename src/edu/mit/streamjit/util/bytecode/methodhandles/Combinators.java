@@ -213,10 +213,7 @@ public final class Combinators {
 	 * invoking the given argument handles
 	 */
 	public static MethodHandle apply(MethodHandle target, MethodHandle... args) {
-		for (MethodHandle a : args)
-			target = MethodHandles.collectArguments(target, 0,
-					a.asType(a.type().changeReturnType(target.type().parameterType(0))));
-		return target;
+		return apply(target, Arrays.asList(args));
 	}
 
 	/**
@@ -228,10 +225,7 @@ public final class Combinators {
 	 * invoking the given argument handles
 	 */
 	public static MethodHandle apply(MethodHandle target, Iterable<MethodHandle> args) {
-		for (MethodHandle a : args)
-			target = MethodHandles.collectArguments(target, 0,
-					a.asType(a.type().changeReturnType(target.type().parameterType(0))));
-		return target;
+		return apply(target, args.iterator());
 	}
 
 	/**
