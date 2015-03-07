@@ -78,7 +78,7 @@ public final class Combinators {
 			return handles[0].asType(type);
 		MethodHandle chain = nop(type.parameterArray());
 		for (int i = handles.length-1; i >= 0; --i) {
-			checkArgument(handles[i].type().parameterList().equals(type.parameterList()), "Type mismatch in "+Arrays.toString(handles));
+			checkArgument(handles[i].type().parameterList().equals(type.parameterList()), "type mismatch in %s", Arrays.asList(handles));
 			chain = MethodHandles.foldArguments(chain, handles[i].asType(type));
 		}
 		return chain;
@@ -109,7 +109,7 @@ public final class Combinators {
 		checkArgument(cases.length >= 1);
 		MethodType type = cases[0].type();
 		for (MethodHandle mh : cases)
-			checkArgument(mh.type().equals(type), "Type mismatch in "+Arrays.toString(cases));
+			checkArgument(mh.type().equals(type), "type mismatch in %s", Arrays.asList(cases));
 		MethodHandle selector = METHODHANDLE_ARRAY_GETTER.bindTo(cases.clone());
 		//Replace the index with the handle to invoke, passing it to an invoker.
 		return MethodHandles.filterArguments(MethodHandles.exactInvoker(type), 0, selector);
