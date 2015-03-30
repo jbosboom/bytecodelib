@@ -1095,8 +1095,8 @@ public final class MethodResolver {
 		}
 
 		private void valueArrayFromFrameList(List<?> frameList, Value[] values, boolean expandCat2Types) {
-			for (int i = 0; i < frameList.size(); ++i) {
-				Object o = frameList.get(i);
+			int i = 0;
+			for (Object o : frameList) {
 				if (o instanceof Integer) {
 					Integer t = (Integer)o;
 					if (t.equals(Opcodes.INTEGER))
@@ -1128,6 +1128,7 @@ public final class MethodResolver {
 					assert v != null;
 					values[i] = v;
 				}
+				++i;
 			}
 		}
 	}
