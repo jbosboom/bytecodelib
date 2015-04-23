@@ -227,7 +227,7 @@ public final class MethodResolver {
 		//Remove duplicates and sort via TreeSet.
 		indices = new ArrayList<>(new TreeSet<>(indices));
 		for (int i = 1; i < indices.size(); ++i)
-			blocks.add(new BBInfo(indices.get(i-1), indices.get(i)));
+			blocks.add(new BBInfo(indices.get(i-1), indices.get(i), i-1));
 	}
 
 	private void buildInstructions(BBInfo block) {
@@ -1041,8 +1041,9 @@ public final class MethodResolver {
 		private final int start, end;
 		private FrameState entryState;
 		private final FrameNode frame;
-		private BBInfo(int start, int end) {
-			this.block = new BasicBlock(method.getParent().getParent());
+		private BBInfo(int start, int end, int index) {
+			this.block = new BasicBlock(method.getParent().getParent(),
+					String.format("%d@%d-%d", index, start, end));
 			method.basicBlocks().add(this.block);
 			this.start = start;
 			this.end = end;
