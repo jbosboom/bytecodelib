@@ -91,7 +91,11 @@ import org.objectweb.asm.tree.VarInsnNode;
  */
 public final class MethodResolver {
 	public static void resolve(Method m) {
-		new MethodResolver(m).resolve();
+		try {
+			new MethodResolver(m).resolve();
+		} catch (RuntimeException ex) {
+			throw new RuntimeException("while resolving "+m.toString()+" from "+m.getParent().toString(), ex);
+		}
 	}
 
 	private final Method method;
